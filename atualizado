@@ -1,0 +1,182 @@
+package aplicacao_final;
+
+import java.util.Scanner;
+import java.io.File;
+import java.util.Formatter;
+import java.io.FileNotFoundException;
+
+/**
+ *
+ * @author jony
+ */
+public class Main {
+
+    static Scanner ler = new Scanner(System.in);
+
+    public static void main(String[] args) throws Exception {
+
+        String[][] participantes = new String[Config.MAX_PARTICIPANTES][Config.N_CAMPOS_INFO];
+        int nParticipantes = 0;
+        String[][] provas = new String[Config.N_PROVAS][2];
+        int nProvas = 0;
+
+        String menu = " Escolha uma opção: \n\n 1- Inscrição de novos participantes. \n 2- Visualizar concorrentes já inscritos. \n 3- Atualizar informação dos participantes \n 4- Eliminar visitantes \n "
+                + "5- Listar os nomes começados por uma letra \n 6- Listar nomes repetidos \n 7- Sair \n";
+
+        char op;
+        do {
+            System.out.println(menu);
+            op = ler.nextLine().charAt(0);
+            switch (op) {
+                case '1':
+                    nParticipantes = inscricoes(participantes, nParticipantes);
+                    Config.pausa();
+                    break;
+                case '2':
+                    listarPaginas(participantes, nParticipantes);
+                    System.out.println();
+                    Config.pausa();
+                    break;
+                case '3':
+                    System.out.println("Qual o número de sócio que pretende atualizar?");
+                    String nSocio = ler.nextLine();
+                    actualizarInfoParticipante(nSocio, participantes, nParticipantes);
+                    break;
+                case '4':
+
+                    break;
+                case '5':
+
+                    break;
+                case '6':
+
+                    break;
+                case '7':
+                    break;
+                default:
+                    System.out.println("Opção inválida!!");
+            }
+        } while (op != '7');
+
+    }
+
+    // 1 Módulo
+    public static int inscricoes(String[][] participantes, int nParticipantes) throws Exception {
+
+        Scanner fln;
+        String nomeFich;
+        boolean ans;
+        do {
+            // Pede o nome do ficheiro de onde queremos ler
+            System.out.println("Qual o nome do ficheiro de texto que contem a informação? ");
+            nomeFich = ler.nextLine();
+            ans = true;
+            try {
+                fln = new Scanner(new File(nomeFich));
+                fln.close();
+            } catch (java.io.IOException Exception) {
+                System.out.println("O ficheiro não existe, tente novamente: \n");
+                ans = false;
+            }
+        } while (!ans);
+
+        // Abrimos o ficheiro
+        fln = new Scanner(new File(nomeFich));
+        String linha;
+        while (fln.hasNext() && nParticipantes < Config.MAX_PARTICIPANTES) {
+            linha = fln.nextLine();  //lê linha a linha o ficheiro 
+
+            if (linha.trim().length() > 0) {
+                nParticipantes = guardarDados(linha, participantes, nParticipantes);
+            }
+        }
+        fln.close();   // fechamos o ficheiro
+        return nParticipantes;
+    }
+    //Guarda os dados de cada linha nos diferentes espaços da matriz participantes
+
+    public static int guardarDados(String linha, String[][] participantes, int nParticipantes) {
+        String[] temp = linha.split(";");
+        if (temp.length == Config.N_CAMPOS_INFO) {
+            String num = temp[0].trim();
+            //Verificações de incrições com espaços em branco
+            if (temp[0].trim().length() == 0 || temp[1].trim().length() == 0 || temp[2].trim().length() == 0 || temp[3].trim().length() == 0) {
+                System.out.print("\nNão foi possível inscrever a pessoa " + temp[1].trim() + ". Dados inválidos.");
+            } else {
+                int pos = Config.procurarElemento(num, participantes, nParticipantes);
+                if (pos == -1) {
+                    participantes[nParticipantes][0] = temp[0].trim();
+                    participantes[nParticipantes][1] = temp[1].trim();
+                    participantes[nParticipantes][2] = temp[2].trim();
+                    participantes[nParticipantes][3] = temp[3].trim();
+                    nParticipantes++;
+                } else {
+                    System.out.print("\nNão foi possível validar a inscrição da pessoa " + temp[1].trim() + ". Número de sócio já em utilização.");
+                }
+            }
+        }
+        return nParticipantes;
+    }
+
+    // Módulo 2 para listar as páginas
+    public static void listarPaginas(String[][] participantes, int nParticipantes) {
+
+        int contPaginas = 0;
+        for (int i = 0; i < nParticipantes; i++) {
+            if (i % Config.MAX_LINHAS_PAGINA == 0) {
+                if (contPaginas > 0) {
+                    Config.pausa();
+                }
+                contPaginas++;
+                
+                System.out.println("Página nº " + contPaginas);
+                System.out.println("");
+                Config.cabecalho();
+            }
+            for (int j = 0; j < Config.N_CAMPOS_INFO; j++) {
+                if (j == 1) {
+                    System.out.printf("%-30s", participantes[i][j]);
+                } else {
+                    System.out.printf("%-12s", participantes[i][j]);
+                }
+            }
+            System.out.println("");
+        }
+    }
+
+    // Módulo 3
+    public static boolean actualizarInfoParticipante(String nSocio, String[][] participantes, int nParticipantes) {
+        int pos;
+        if ((pos = Config.procurarElemento(nSocio, participantes, nParticipantes)) > -1) {
+            int op;
+            do {
+                Formatter out = new Formatter(System.out);
+                Config.mostrarParticipante(out, participantes[pos]);
+                op = Config.menuInfoParticipante();
+                switch (op) {
+                    case 1:
+                        System.out.println("Novo nome");
+                        participantes[pos][1] = ler.nextLine();
+                        break;
+                    case 2:
+                        System.out.println("Nova marca do automóvel: ");
+                        participantes[pos][2] = ler.nextLine();
+                        break;
+                    case 3:
+                        System.out.println("Nova data de construção: ");
+                        participantes[pos][3] = ler.nextLine();
+                        break;
+                    case 0:
+                        System.out.println("FIM");
+                        break;
+                    default:
+                        System.out.println("Opção inválida");
+                }
+            } while (op != 0);
+            return true;
+        } else {
+            System.out.printf("O participante %s não foi encontrado!", nSocio);
+            return false;
+        }
+    }
+}
