@@ -1,0 +1,63 @@
+package aplicacao_final;
+
+import static aplicacao_final.Main.ler;
+import java.util.Formatter;
+import java.util.Scanner;
+
+/**
+ *
+ * @author jony
+ */
+public class Config {
+
+    static Scanner ler = new Scanner(System.in);
+    public final static int MAX_PARTICIPANTES = 20;
+    public final static int N_CAMPOS_INFO = 4;
+    public final static int N_PROVAS = 5;
+    public final static int MAX_LINHAS_PAGINA = 3;
+
+    public static int procurarElemento(String valor, String[][] participantes, int nParticipantes) {
+
+        for (int i = 0; i < nParticipantes; i++) {
+            if (participantes[i][0].equals(valor)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    public static void pausa() {
+        System.out.println("\n\nDigite ENTER para continuar\n");
+        ler.nextLine();
+    }
+
+    public static void cabecalho() {
+        System.out.printf("%-50s%n", "PARTICIPANTES");
+        System.out.printf("%-75s%n", "==================================================");
+    }
+    
+    public static int menuInfoParticipante(){
+        String texto = "Atualizar: "
+                + "\n Nome do participante - 1"
+                + "\n Marca do automóvel - 2"
+                + "\n Data contrução - 3"
+                + "\n Terminar - 0"
+                + "\n\n Qual a sua opção?";
+        System.out.printf("%n%s%n", texto);
+        int op = ler.nextInt();
+        ler.nextLine();
+        return op;               
+    }
+    
+     public static void mostrarParticipante(Formatter out, String[]participante){
+        for(int j=0; j<Config.N_CAMPOS_INFO; j++){
+            if(j==1){
+                out.format("%-30s",participante[j]);
+            }else{
+                out.format("%-12s",participante[j]);
+            }
+        }
+    }
+
+   
+}
