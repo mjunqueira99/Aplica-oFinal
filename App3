@@ -1,0 +1,68 @@
+public static boolean actualizarInfoParticipante(String nSocio, String[][]matriz, int nElems) {
+        int pos;
+        if((pos = pesquisarElemento(nSocio,nElems,matriz))>-1){
+        int op;
+        do {
+            Formatter out = new Formatter(System.out);
+            mostrarParticipante(out, matriz[pos]);
+            op = menuInfoParticipante();            
+            switch (op) {
+                case 1:
+                    System.out.println("Novo nome");
+                    matriz[pos][1]=ler.nextLine();
+                    break;                    
+                case 2:
+                    System.out.println("Nova data de construção:");
+                    matriz[pos][2]=ler.nextLine();
+                    break;
+                case 3:
+                    System.out.println("Nova data de construção:");
+                    matriz[pos][3]=ler.nextLine();
+                    break;
+                case 0:
+                    System.out.println("FIM");
+                    break;
+                default:
+                    System.out.println("Opção inválida");                    
+            }
+        }while(op!=0);
+         return true;
+       }
+        System.out.printf("O participante %s não foi encontrado!", nSocio);
+        return false;
+    }
+    
+    private static void mostrarParticipante(Formatter out, String[]participante){
+        for(int j=0; j<N_CAMPOS_INFO; j++){
+            if(j==1){
+                out.format("%30s;",participante[j]);
+            }else{
+                out.format("%12s;",participante[j]);
+            }
+        }
+    }
+    
+    private static int menuInfoParticipante(){
+        String texto = "ATUALIZAR INFORMAÇÃO DE PARTICIPANTE"
+                + "NOME PARTICIPANTE... 1\n"
+                + "MARCA DO AUTOMÓVEL... 2\n"
+                + "DATA CONSTRUÇÃO... 3\n"
+                + "TERMINAR... 0\n"
+                + "\nQUAL A SUA OPÇÃO?";
+        System.out.printf("%n%s%n", texto);
+        int op = ler.nextInt();
+        ler.nextLine();
+        return op;               
+    }
+    
+    public static int pesquisarElemento(String valor, int nEl, String[][]mat){
+        
+        for(int i=0; i< nEl; i++){
+            if(mat[i][0].equals(valor)){
+                return i;
+            }
+        }
+        return -1;
+    }
+    
+}
