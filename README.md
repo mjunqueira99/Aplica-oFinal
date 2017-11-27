@@ -22,6 +22,8 @@ public class ExecFinal {
                     break;
                 case 3:
                     System.out.println("Alterar informação do participante");
+                    System.out.println("Qual o número de sócio que pretende atualizar?");
+                    String nSocio = ler.nextLine();
                     break;
                 case 4:
                     System.out.print("Informação das Provas");
