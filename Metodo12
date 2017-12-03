@@ -1,0 +1,73 @@
+//Modulo 12
+    public static void criarFicheiro(String[][] participantes, int[][] tempos, int nSocios) throws FileNotFoundException {
+        Formatter novoFich = new Formatter(new File("GrandePremio.txt"));
+        String[][] parametros = new String[nSocios][4];
+        novoFich.format("%25s", "Num");
+        novoFich.format("%15s", "Nome");
+        novoFich.format("%25s", "Idade Automóvel");
+        novoFich.format("%25s", "Total de Prémios");
+        novoFich.format("%n");
+        escreverParâmetros(participantes, nSocios, tempos, parametros);
+        organizarValorPremioDecrescente(participantes, nSocios, parametros);
+        for (int l = 0; l < nSocios; l++) {
+            novoFich.format("%25s", parametros[l][0]);
+            novoFich.format("%15s", parametros[l][1]);
+            novoFich.format("%25s", parametros[l][2]);
+            novoFich.format("%25s", parametros[l][3]);
+            novoFich.format("%n");
+        }
+        String agora = determinarInstante();
+        novoFich.format("%65s", agora);
+        novoFich.close();
+    }
+    
+    public static String determinarInstante(){
+        Calendar hoje = Calendar.getInstance();
+        int dia = hoje.get(Calendar.DAY_OF_MONTH);
+        int mes = hoje.get(Calendar.MONTH) + 1;
+        int ano = hoje.get(Calendar.YEAR);
+        return dia + "/" + mes + "/" + ano;
+    }
+    
+    public static void escreverParâmetros(String[][] participantes, int nSocios, int[][] tempos, String[][] parametros) {
+        for (int l = 0; l < nSocios; l++) {
+            parametros[l][0] = numeroDoSocio(participantes,nSocios);
+            parametros[l][1] = Config.converterNome(participantes[l][1]);
+            parametros[l][2] = Integer.toString(Config.idadeDoAutomovel(participantes[l][2]));
+            //total dos premios fuuuuckk
+            //Preciso do 6, e também de saber os 
+            parametros[1][3] = totalDePremios();    
+            //Total xxxx.xx
+        }
+    }
+    
+    public static void organizarValorPremioDecrescente(String[][] participantes, int nSocios, String[][] parametros) {
+        String[] aux = new String[nSocios];
+        int premioMaximo;
+        for (int i = 0; i < nSocios; i++) {
+            premioMaximo = i;
+            for (int j = i + 1; j < nSocios; j++) {
+                if (parametros[j][1].compareTo(parametros[premioMaximo][1]) > 0) {
+                    premioMaximo = j;
+                }
+            }
+            if (premioMaximo != i) {
+                aux = parametros[premioMaximo];
+                parametros[premioMaximo] = parametros[i];
+                parametros[i] = aux;
+            }
+        }
+    } 
+    
+    public static String numeroDoSocio(String[][] participantes, int nSocios){        
+        int i;
+        for(i=0; i<nSocios; i++){
+            String numeroSocio = participantes[i][0];
+        }
+        return numeroSocio;
+    }
+    
+    //Pedir ao nuno o metodo para por o total de prémios com aquele aspeto
+    public static String totalDePremios(){
+        
+    }
