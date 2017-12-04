@@ -1,0 +1,389 @@
+package aplicacao_final;
+
+import java.util.Scanner;
+import java.io.File;
+import java.util.Formatter;
+import java.io.FileNotFoundException;
+
+/**
+ *
+ * @author jony
+ */
+public class Main {
+
+    static Scanner ler = new Scanner(System.in);
+
+    public static void main(String[] args) throws Exception {
+
+        String menu = " Escolha uma opção: \n\n 1- Inscrição de novos participantes. \n 2- Visualizar informação dos concorrentes já inscritos. \n 3- Atualizar informação dos participantes \n 4- Carregar informação das provas \n "
+                + "5- Tempos realizados nas provas \n 6- Calcular prémios dos participantes \n 7- Guardar informações em backup \n 8-Remover informação de um participante \n 9- Inserir novo participante \n 10-";
+
+        int op;
+        do {
+            System.out.println(menu);
+            op = ler.nextInt();
+            switch (op) {
+                case 1:
+                    Config.nParticipantes = inscricoes(Config.participantes, Config.nParticipantes);
+                    MetodosAux.pausa();
+                    break;
+                case 2:
+                    listarPaginas(Config.participantes, Config.nParticipantes);
+                    System.out.println();
+                    MetodosAux.pausa();
+                    break;
+                case 3:
+                    System.out.println("Qual o número de sócio que pretende atualizar?");
+                    String nSocio = ler.nextLine();
+                    actualizarInfoParticipante(nSocio, Config.participantes, Config.nParticipantes);
+                    MetodosAux.pausa();
+                    break;
+                case 4:
+                    if (lerInformacaoProvas(Config.provas) == true) {
+                        System.out.println("Informação guardada com sucesso! ");
+                    } else {
+                        System.out.println("Informação contêm erros, impossível carregar no ficheiro. ");
+                    }
+                    MetodosAux.pausa();
+                    break;
+                case 5:
+                    lerProva(Config.tempos, Config.participantes, Config.provas, Config.nParticipantes);
+                    MetodosAux.pausa();
+                    break;
+                case 6:
+                    if (calcularPremios(Config.provas, Config.participantes, Config.nParticipantes, Config.tempos, Config.premios) == false) {
+                        System.out.println("Nome da prova incorreto");
+                    }
+                    break;
+                case 7:
+                    backupInformacao(Config.participantes, Config.nParticipantes, Config.tempos, Config.provas);
+                    break;
+                case 8:
+                    System.out.println("Qual o número de sócio que quer remover? ");
+                    String num = ler.nextLine();
+                    Config.nParticipantes = removerDadosParticipante(num, Config.participantes, Config.nParticipantes, Config.tempos, Config.premios);
+                    break;
+                case 9:
+                    Config.nParticipantes = inserirNovoParticipante(Config.participantes, Config.nParticipantes);
+                    break;
+                case 10:
+                    System.out.println("kkk");
+                    break;
+                default:
+                    System.out.println("Opção inválida!!");
+            }
+        } while (op != 9);
+
+    }
+
+    // 1 Módulo
+    public static int inscricoes(String[][] participantes, int nParticipantes) throws Exception {
+
+        String nomeFich = MetodosAux.lerFicheiro();
+        // Abrimos o ficheiro
+        Scanner fln = new Scanner(new File(nomeFich));
+        while (fln.hasNext() && nParticipantes < Config.MAX_PARTICIPANTES) {
+            String linha = fln.nextLine();  //lê linha a linha o ficheiro 
+
+            if (linha.trim().length() > 0) {
+                nParticipantes = MetodosAux.guardarDados(linha, participantes, nParticipantes);
+            }
+        }
+        fln.close();
+        return nParticipantes;// fechamos o ficheiro
+    }
+
+    // Módulo 2 para listar as páginas
+    public static void listarPaginas(String[][] participantes, int nParticipantes) {
+
+        int contPaginas = 0;
+        for (int i = 0; i < nParticipantes; i++) {
+            if (i % Config.MAX_LINHAS_PAGINA == 0) {
+                if (contPaginas > 0) {
+                    MetodosAux.pausa();
+                }
+                contPaginas++;
+
+                System.out.println("Página nº " + contPaginas);
+                System.out.println("");
+                MetodosAux.cabecalho();
+            }
+            for (int j = 0; j < Config.N_CAMPOS_INFO; j++) {
+                if (j == 1) {
+                    System.out.printf("%-30s", participantes[i][j]);
+                } else {
+                    System.out.printf("%-12s", participantes[i][j]);
+                }
+            }
+            System.out.println("");
+        }
+    }
+
+    // Módulo 3
+    public static boolean actualizarInfoParticipante(String nSocio, String[][] participantes, int nParticipantes) {
+        int pos;
+        if ((pos = MetodosAux.procurarElemento(nSocio, participantes, nParticipantes)) > -1) {
+            int op;
+            do {
+                Formatter out = new Formatter(System.out);
+                MetodosAux.mostrarParticipante(out, participantes[pos]);
+                op = MetodosAux.menuInfoParticipante();
+                switch (op) {
+                    case 1:
+                        System.out.println("Novo nome");
+                        participantes[pos][1] = ler.nextLine();
+                        break;
+                    case 2:
+                        System.out.println("Nova marca do automóvel: ");
+                        participantes[pos][2] = ler.nextLine();
+                        break;
+                    case 3:
+                        System.out.println("Nova data de construção: ");
+                        participantes[pos][3] = ler.nextLine();
+                        break;
+                    case 0:
+                        System.out.println("FIM");
+                        break;
+                    default:
+                        System.out.println("Opção inválida");
+                }
+            } while (op != 0);
+            return true;
+        } else {
+            System.out.printf("O participante %s não foi encontrado!", nSocio);
+            return false;
+        }
+    }
+
+    //Módulo 4
+    public static boolean lerInformacaoProvas(String[] provas) throws FileNotFoundException {
+
+        String nomeFich = MetodosAux.lerFicheiro();
+        int nElem = 0;
+        Scanner fln = new Scanner(new File(nomeFich), "UTF-8");
+        while (fln.hasNext()) {
+            String linha = fln.nextLine();
+            if (linha.length() > 0) {
+                String[] temp = linha.trim().split(";");
+                if (temp.length + nElem <= Config.N_PROVAS) {
+                    for (int i = 0; i < temp.length; i++) {
+                        String str = temp[i].trim().replace(":", "-").replace("KM", "").replace("Km", "").replace("km", "");
+                        if (str.length() > 0) {
+                            provas[nElem] = str.trim();
+                            nElem++;
+                        }
+                    }
+
+                }
+            }
+        }
+        fln.close();
+        return nElem > 0;
+    }
+
+    // Módulo 5
+    public static void lerProva(int[][] tempos, String[][] participantes, String[] provas, int nParticipantes) throws FileNotFoundException {
+
+        String nomeFich = MetodosAux.lerFicheiro();
+        boolean ver = true;
+        Scanner fln = new Scanner(new File(nomeFich));                     //FALTA CRIAR OS OUTROS FICHEIROS DAS PROVAS*****
+        String linha;
+        while (fln.hasNext() && ver == true) {
+            linha = fln.nextLine();                                       // GUARDAR FICHEIROS NO MODO UTF8 NO BOM
+            if (linha.trim().length() > 0) {
+                if (MetodosAux.verificacoesEspacosLinhas(linha) == false) {
+                    System.out.println("Erro: ficheiro contêm erros nos dados");
+                    ver = false;
+                }
+            }
+        }
+        fln.close();
+        if (ver) {
+            System.out.println("Ficheiro sem erros");
+            String nomeProva = nomeFich.trim().split("\\.")[0].trim();
+            int indiceProva = MetodosAux.procurarProva(nomeProva, Config.provas);
+
+            MetodosAux.inserirMatrizTempos(nomeFich, indiceProva, tempos, participantes, nParticipantes);
+        }
+    }
+
+    // Módulo 6
+    public static boolean calcularPremios(String[] provas, String[][] participantes, int nParticipantes, int[][] tempos, double[][] premios) {
+
+        System.out.println("Qual o nome da prova? ");
+        String nomeProva = ler.nextLine();
+        int indiceProva = MetodosAux.procurarProva(nomeProva, Config.provas);
+
+        if (indiceProva != -1) {
+            int melhorTempo = MetodosAux.calcMelhorTempo(tempos, nParticipantes, indiceProva);
+            int distanciaProva = MetodosAux.calcDistanciaProvas(provas, indiceProva);
+            for (int i = 0; i < nParticipantes; i++) {
+                int idadeAutomovel = MetodosAux.calcIdadeAuto(i, participantes);
+                premios[i][indiceProva] = MetodosAux.calcPremios(melhorTempo, distanciaProva, idadeAutomovel, tempos, i, indiceProva);
+                System.out.println(premios[i][indiceProva]);
+            }
+            return true;
+        }
+
+        return false;
+    }
+
+    //Módulo 7
+    public static void backupInformacao(String[][] participantes, int nParticipantes, int[][] tempos, String[] provas) throws Exception {
+
+        String Backup = MetodosAux.abrirFicheiro();
+        Formatter fOutput = new Formatter(new File(Backup));
+
+        for (int i = 0; i < nParticipantes; i++) {
+            for (int j = 0; j < Config.N_CAMPOS_INFO; j++) {
+                fOutput.format("%s;", participantes[i][j]);
+            }
+            for (int j = 0; j < Config.N_PROVAS; j++) {
+                fOutput.format("%d;", tempos[i][j]);
+            }
+
+            fOutput.format("%n");
+        }
+
+        for (int i = 0; i < Config.N_PROVAS; i++) {
+            fOutput.format("%s%n", provas[i]);
+        }
+        fOutput.close();
+        System.out.println("Informação gravada com sucesso no ficheiro backup ");
+    }
+
+    //Módulo 8
+    public static int removerDadosParticipante(String num, String[][] participantes, int nParticipantes, int[][] tempos, double[][] premios) {
+
+        int pos = MetodosAux.procurarElemento(num, participantes, nParticipantes);
+        System.out.println(pos);
+
+        //REMOÇÃO DA MATRIZ DOS PARTICIPANTES
+        for (int i = 0; i < Config.N_CAMPOS_INFO; i++) {
+            for (int j = pos; j < nParticipantes - 1; j++) {
+                participantes[pos][i] = participantes[pos + 1][i];
+            }
+        }
+        nParticipantes--;
+
+        //REMOÇÃO DA MATRIZ DOS TEMPOS E DOS PRÉMIOS
+        for (int i = 0; i < Config.N_PROVAS; i++) {
+            for (int j = pos; j < nParticipantes; j++) {
+                tempos[pos][i] = tempos[pos + 1][i];
+                premios[pos][i] = premios[pos + 1][i];
+            }
+        }
+        nParticipantes--;
+        return nParticipantes;
+    }
+
+    //Método 9
+    public static int inserirNovoParticipante(String[][] participantes, int nParticipantes) {
+
+        System.out.println("Qual o número de sócio do novo participante? ");
+        participantes[nParticipantes][0] = ler.nextLine();
+        System.out.println("Qual o nome do novo participante? ");
+        participantes[nParticipantes][1] = ler.nextLine();
+        System.out.println("Qual a marca do seu automóvel? ");
+        participantes[nParticipantes][2] = ler.nextLine();
+        System.out.println("Qual a data do seu automóvel? ");
+        participantes[nParticipantes][3] = ler.nextLine();
+        nParticipantes++;
+
+        return nParticipantes;
+    }
+
+    //Módulo 10
+    public static void velocidadeMedia(String[][] participantes, int nParticipantes, int[][] tempos, double[][] premios) {
+
+        int soma;
+        int maior = 0;
+        int menor = 9999999;
+        int nEl;
+        int soma2;
+        int soma3;
+
+        System.out.println("Qual o número de sócio? ");
+        String num = ler.nextLine();
+        int pos = MetodosAux.procurarElemento(num, participantes, nParticipantes);
+
+        for (int i = 0; i < Config.N_PROVAS; i++) {
+            if (tempos[pos][i] != 0) {
+                soma = 0;
+                nEl = 0;
+                soma2 = 0;
+                soma3 = 0;
+
+                int participanteMaior = 0;
+                int nProvasPartMaior = 0;
+                int participanteMenor = 0;
+                int nProvasPartMenor = 0;
+
+                for (int j = 0; j < nParticipantes; j++) {
+                    if (tempos[j][i] != 0) {
+                        menor = tempos[j][i];
+                        maior = tempos[j][i];
+                        break;
+                    }
+                }
+                for (int j = 0; j < nParticipantes; j++) {
+                    if (tempos[j][i] != 0) {
+                        soma = soma + tempos[j][i];
+                        if (tempos[j][i] > maior) {
+                            maior = tempos[j][i];
+                            participanteMaior = j;
+                        }
+                        if (tempos[j][i] < menor) {
+                            menor = tempos[j][i];
+                            participanteMenor = j;
+                        }
+                        nEl++;
+                    }
+                }
+                float media = (float) soma / nEl;
+                System.out.println("A velocidade média na prova " + i + "é " + media);
+
+                for (int k = 0; k < Config.N_PROVAS; k++) {
+                    if (tempos[participanteMaior][k] != 0) {
+                        soma2 += tempos[participanteMaior][k];
+                        nProvasPartMaior++;
+                    }
+                }
+                for (int k = 0; k < Config.N_PROVAS; k++) {
+                    if (tempos[participanteMenor][k] != 0) {
+                        soma3 += tempos[participanteMenor][k];
+                        nProvasPartMenor++;
+                    }
+                }
+                float media2 = (float) soma2 / nProvasPartMaior;
+                System.out.println("Velocidade média do atleta mais rápido da prova " + i + "é " + media2);
+                float media3 = (float) soma3 / nProvasPartMenor;
+                System.out.println("Velocidade média do atleta menos rápido da prova " + i + "é " + media3);
+            }
+        }
+
+    }
+
+//Modulo 12
+    public static void criarFicheiro(String[][] participantes, int[][] tempos, int nParticipantes) throws FileNotFoundException {
+        Formatter novoFich = new Formatter(new File("GrandePremio.txt"));
+        String[][] parametros = new String[nParticipantes][4];
+        novoFich.format("%25s", "Num");
+        novoFich.format("%15s", "Nome");
+        novoFich.format("%25s", "Idade Automóvel");
+        novoFich.format("%25s", "Total de Prémios");
+        novoFich.format("%n");
+        MetodosAux.escreverParâmetros(participantes, nParticipantes, tempos, parametros);
+        MetodosAux.organizarValorPremioDecrescente(participantes, nParticipantes, parametros);
+        for (int l = 0; l < nParticipantes; l++) {
+            novoFich.format("%25s", parametros[l][0]);
+            novoFich.format("%15s", parametros[l][1]);
+            novoFich.format("%25s", parametros[l][2]);
+            novoFich.format("%25s", parametros[l][3]);
+            novoFich.format("%n");
+        }
+        String agora = MetodosAux.determinarInstante();
+        novoFich.format("%65s", agora);
+        novoFich.close();
+    }
+}
