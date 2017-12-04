@@ -1,0 +1,18 @@
+   static Scanner ler = new Scanner(System.in);
+    public final static int MAX_PARTICIPANTES = 20;
+    public final static int N_CAMPOS_INFO = 4;
+    public final static int N_PROVAS = 5;
+    public final static int MAX_LINHAS_PAGINA = 3;
+    public static String[][] participantes = new String[MAX_PARTICIPANTES][N_CAMPOS_INFO];
+    public static int nParticipantes = 0;
+    public static int[][] tempos = new int[MAX_PARTICIPANTES][N_PROVAS];
+    public static String[] provas = new String[N_PROVAS];
+    public static int nProvas = 0;
+    public static double[][] premios = new double[MAX_PARTICIPANTES][N_PROVAS];
+    public final static int ANO_ATUAL = 2017;
+    public final static int FATOR_DIVISAO_PREMIO = 20;
+    public final static int FATOR_MULTI_PREMIO = 2;
+    public final static int SUPLEMENTO = 500;
+    public static double[][] premiosTotal = new double[MAX_PARTICIPANTES][2];
+
+}
