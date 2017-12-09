@@ -1,0 +1,366 @@
+package aplicacao_final;
+
+import static aplicacao_final.Main.ler;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.Calendar;
+import java.util.Scanner;
+
+/**
+ *
+ * @author jony
+ */
+public class MetodosAux {
+
+    public static String lerFicheiro() {
+        Scanner fln;
+        String nomeFich;
+
+        boolean ans;
+        do {
+            System.out.println("Qual o nome do ficheiro de texto que contem a informação? ");
+            nomeFich = ler.nextLine();
+            ans = true;
+            try {
+                fln = new Scanner(new File(nomeFich));
+                fln.close();
+            } catch (java.io.IOException Exception) {
+                System.out.println("O ficheiro não existe, tente novamente: \n");
+                ans = false;
+            }
+        } while (!ans);
+        return nomeFich;
+    }
+
+    public static int guardarDados(String linha, String[][] participantes, int nParticipantes) {
+        String[] temp = linha.split(";");
+        if (temp.length == Config.N_CAMPOS_INFO) {
+            String num = temp[0].trim();
+            //Verificações de incrições com espaços em branco
+            if (temp[0].trim().length() == 0 || temp[1].trim().length() == 0 || temp[2].trim().length() == 0 || temp[3].trim().length() == 0 || verificarData(temp[3]) == false) {
+                System.out.print("\nNão foi possível inscrever a pessoa " + temp[1].trim() + ". Dados inválidos.");
+            } else {
+                int pos = MetodosAux.procurarElemento(num, participantes, nParticipantes);
+                if (pos == -1) {
+                    participantes[nParticipantes][0] = temp[0].trim();
+                    participantes[nParticipantes][1] = temp[1].trim();
+                    participantes[nParticipantes][2] = temp[2].trim();
+                    participantes[nParticipantes][3] = temp[3].trim();
+                    nParticipantes++;
+                } else {
+                    System.out.print("\nNão foi possível validar a inscrição da pessoa " + temp[1].trim() + ". Número de sócio já em utilização.");
+                }
+            }
+        }
+        return nParticipantes;
+    }
+
+    public static boolean verificarData(String data) {
+        boolean ans = true;
+        String[] aux = data.trim().split("/");
+        if (aux.length == 3) {
+            String temp = aux[0] + aux[1] + aux[2];
+            for (int i = 0; i < temp.length(); i++) {
+                if (Character.isDigit(temp.charAt(i)) == true) {
+
+                } else {
+                    ans = false;
+                    break;
+                }
+            }
+            if (ans == true) {
+                int dias = Integer.parseInt(aux[0]);
+                int mes = Integer.parseInt(aux[1]);
+                int ano = Integer.parseInt(aux[2]);
+                if (aux[0].length() != 0 && aux[1].length() != 0 && aux[2].length() != 0 && dias > 0 && dias < 32 && mes > 0 && mes < 13 && ano > 1900 && ano < 2017) {
+                    ans = true;
+                } else {
+                    ans = false;
+                }
+            }
+        } else {
+            ans = false;
+        }
+        return ans;
+    }
+
+    public static int procurarElemento(String valor, String[][] participantes, int nParticipantes) {
+
+        for (int i = 0; i < nParticipantes; i++) {
+            if (participantes[i][0].equals(valor)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    public static void pausa() {
+        System.out.println("\n\nDigite QUALQUER TECLA para continuar\n");
+        ler.nextLine();
+    }
+
+    public static void cabecalho() {
+        System.out.printf("%50s%n", "PARTICIPANTES");
+        System.out.printf("%75s%n", "==================================================");
+    }
+
+    public static int menuInfoParticipante() {
+        String texto = "Atualizar: "
+                + "\nNome do participante - 1"
+                + "\nMarca do automóvel - 2"
+                + "\nData contrução - 3"
+                + "\nTerminar - 0"
+                + "\n\nQual a sua opção?";
+        System.out.printf("%n%s%n", texto);
+        int op = ler.nextInt();
+        ler.nextLine();
+        return op;
+    }
+
+    public static void mostrarParticipante(String[] participante) {
+        for (int j = 0; j < Config.N_CAMPOS_INFO; j++) {
+            if (j == 1) {
+                System.out.printf("%-40s", participante[j]);
+            } else {
+                System.out.printf("%-12s", participante[j]);
+            }
+        }
+    }
+
+    public static boolean verificacoesErros(String linha, int nElem) {
+        boolean ans;
+        String[] temp = linha.split(";");
+        if (temp.length + nElem <= Config.N_PROVAS) {
+            ans = true;
+        } else {
+            ans = false;
+        }
+        return ans;
+    }
+
+    public static boolean verificacoesEspacosLinhas(String linha) {
+        boolean ans;
+        String[] aux = linha.split("/");
+        if (aux.length == 2 && aux[0].trim().length() != 0 && aux[1].trim().length() != 0) {
+            ans = true;
+        } else {
+            ans = false;
+        }
+        return ans;
+    }
+
+    public static int procurarProva(String nomeProva, String[] provas) {
+
+        for (int i = 0; i < Config.N_PROVAS; i++) {
+            String[] temp = provas[i].split("-");
+            String prova = temp[0].trim();
+            if (prova.replace(" ", "").equalsIgnoreCase(nomeProva.replace(" ", ""))) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    public static void inserirMatrizTempos(String nomeFich, int indiceProva, int[][] tempos, String[][] participantes, int nParticipantes) throws FileNotFoundException {
+
+        int i = 0;
+        Scanner fln = new Scanner(new File(nomeFich));
+        String linha;
+
+        while (fln.hasNext() && i < nParticipantes) {
+            linha = fln.nextLine();
+            if (linha.trim().length() > 0) {
+                String[] temp = linha.trim().split("/");
+                if (temp.length == 2) {
+                    String num = temp[0].trim();
+                    int pos = MetodosAux.procurarElemento(num, participantes, nParticipantes);
+                    if (pos != -1) {
+                        String[] temp1 = temp[1].trim().split(":");
+                        int minutos = Integer.parseInt(temp1[0].trim());
+                        int segundos = Integer.parseInt(temp1[1].trim());
+                        tempos[pos][indiceProva] = minutos * 60 + segundos;
+                    }
+                }
+
+            }
+        }
+        fln.close();
+    }
+
+    public static int calcMelhorTempo(int[][] tempos, int nParticipantes, int indiceProva) {
+        int menor = tempos[0][indiceProva];
+        for (int i = 1; i < nParticipantes; i++) {
+            if (tempos[i][indiceProva] < menor) {
+                menor = tempos[i][indiceProva];
+            }
+        }
+        return menor;
+    }
+
+    public static int calcDistanciaProvas(String[] provas, int indiceProva) {
+        String[] temp = provas[indiceProva].split("-");
+        int distancia = Integer.parseInt(temp[1].trim());
+        return distancia;
+    }
+
+    public static int idadeDoAutomovel(String anoMesDia) {
+        int ano = Integer.parseInt(anoMesDia.substring(0, 4));
+        int mes = Integer.parseInt(anoMesDia.substring(4, 6));
+        int dia = Integer.parseInt(anoMesDia.substring(6, 8));
+        Calendar hoje = Calendar.getInstance();
+        int diaH = hoje.get(Calendar.DAY_OF_MONTH);
+        int mesH = hoje.get(Calendar.MONTH) + 1;
+        int anoH = hoje.get(Calendar.YEAR);
+        if (mesH > mes || mesH == mes && diaH >= dia) {
+            return anoH - ano;
+        }
+        return anoH - ano - 1;
+    }
+
+    public static String converterddmmaaaaParaaaammdd(String data) {
+        String[] aux = data.trim().split("/");
+        String dia = aux[0].length() < 2 ? "0" + aux[0] : aux[0];
+        String mes = aux[1].length() < 2 ? "0" + aux[1] : aux[1];
+        return aux[2] + mes + dia;
+    }
+
+    public static float calcPremios(int melhorTempo, int distancia, int idadeAutomovel, int[][] tempos, int i, int indiceProva) {
+        float premio = ((float) idadeAutomovel / Config.FATOR_DIVISAO_PREMIO * distancia * Config.FATOR_MULTI_PREMIO);
+        if (tempos[i][indiceProva] == melhorTempo) {
+            premio += Config.SUPLEMENTO;
+        }
+        return premio;
+    }
+
+    public static String ficheiroBackup() {
+        Scanner fln;
+        String nomeFich;
+
+        boolean ans;
+        do {
+            System.out.println("Em qual ficheiro quer fazer backup? ");
+            nomeFich = ler.nextLine();
+            ans = true;
+            try {
+                fln = new Scanner(new File(nomeFich));
+                fln.close();
+            } catch (java.io.IOException Exception) {
+                System.out.println("O ficheiro não existe, tente novamente: \n");
+                ans = false;
+            }
+        } while (!ans);
+        return nomeFich;
+    }
+
+    public static boolean verificacoesInscricaoEspacos(String valor) {
+
+        if (valor.trim().length() > 0) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public static int inscricaoNovoParticipante(String num, String nome, String marca, String data, String[][] participantes, int nParticipantes) {
+
+        participantes[nParticipantes][0] = num;
+        participantes[nParticipantes][1] = nome;
+        participantes[nParticipantes][2] = marca;
+        participantes[nParticipantes][3] = data;
+        nParticipantes++;
+
+        return nParticipantes;
+    }
+
+    public static void velocidadesMedia(int pos, String[] nomeProva, String[][] participantes, int nParticipantes, int[][] tempos, String[] provas) {
+
+        for (int i = 0; i < Config.N_PROVAS; i++) {
+            if (tempos[pos][i] != 0) {
+
+                int maior = 0;
+                int menor = 99999999;
+                int participanteMaior = 0;
+                int participanteMenor = 0;
+                for (int j = 0; j < nParticipantes; j++) {
+                    if (tempos[j][i] != 0) {
+                        menor = tempos[j][i];
+                        maior = tempos[j][i];
+                        break;
+                    }
+                }
+                for (int j = 0; j < nParticipantes; j++) {
+                    if (tempos[j][i] > maior) {
+                        maior = tempos[j][i];
+                        participanteMaior = j;
+                    }
+                    if (tempos[j][i] < menor) {
+                        menor = tempos[j][i];
+                        participanteMenor = j;
+                    }
+                }
+
+                float velocidadeMedia = MetodosAux.calcVelocidadeMedia(tempos[pos][i], i, provas);
+                System.out.printf("A velocidade média do participante %s na prova %s é %.2f km/h %n", participantes[pos][1], nomeProva[i], velocidadeMedia);
+                float velocidadeMediaMaior = MetodosAux.calcVelocidadeMedia(tempos[participanteMaior][i], i, provas);
+                System.out.printf("Velocidade média do atleta menos rápido da prova %s é %.2f km/h %n", nomeProva[i], velocidadeMediaMaior);
+                float velocidadeMediaMenor = MetodosAux.calcVelocidadeMedia(tempos[participanteMenor][i], i, provas);
+                System.out.printf("Velocidade média do atleta mais rápido da prova %s é %.2f km/h %n", nomeProva[i], velocidadeMediaMenor);
+                System.out.println();
+            }
+        }
+    }
+
+    public static float calcVelocidadeMedia(int tempo, int indiceProva, String[] provas) {
+        float velocidadeMedia = ((float) MetodosAux.calcDistanciaProvas(provas, indiceProva) / ((float) tempo / 3600));
+        return velocidadeMedia;
+    }
+
+    public static void calcularPremios(double[][] premios, double[] totPremios, int[] indTotPrem) {
+        for (int i = 0; i < indTotPrem.length; i++) {
+            indTotPrem[i] = i;
+            for (int j = 0; j < premios[i].length; j++) {
+                totPremios[i] += premios[i][j];
+            }
+        }
+    }
+
+    public static String converterNome(String nome) {
+        String primeiraLetra = Character.toString(nome.charAt(0));
+        int ultimo = nome.lastIndexOf(' ');
+        String nomeAbreviado = nome.substring(ultimo) + " " + primeiraLetra + ".";
+        return nomeAbreviado;
+    }
+
+    public static String determinarInstante() {
+        Calendar hoje = Calendar.getInstance();
+        int dia = hoje.get(Calendar.DAY_OF_MONTH);
+        int mes = hoje.get(Calendar.MONTH) + 1;
+        int ano = hoje.get(Calendar.YEAR);
+        return dia + "/" + mes + "/" + ano;
+    }
+
+    public static void ordenarTotalPremios(double[] totPremios, int[] indTotPrem, double[][] premios) {
+        double doubleAux;
+        int intAux;
+        for (int i = 0; i < totPremios.length; i++) {
+            for (int j = i + 1; j < totPremios.length; j++) {
+                if (totPremios[i] < totPremios[j]) {
+                    doubleAux = totPremios[i];
+                    totPremios[i] = totPremios[j];
+                    totPremios[j] = doubleAux;
+                    intAux = indTotPrem[i];
+                    indTotPrem[i] = indTotPrem[j];
+                    indTotPrem[j] = intAux;
+                }
+            }
+        }
+    }
+
+    public static void nomeProvaPreencher(String[] provas, String[] nomeProva) {
+        for (int i = 0; i < Config.N_PROVAS; i++) {
+            String[] temp = provas[i].trim().split("-");
+            nomeProva[i] = temp[0];
+        }
+    }
+}
